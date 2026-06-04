@@ -31650,6 +31650,30 @@ fn build_builder() -> B {
         }
     }
 
+    // Fiat-Shamir END-NONCE: emit a FIXED-LENGTH block of identity X;X pairs at
+    // the very end of the op stream. For each of NONCE_BITS bits, emit one X;X
+    // pair (exact identity, X^2 = I) targeting tx[0] if the bit is 0 or tx[1] if
+    // the bit is 1. The block length is constant (2*NONCE_BITS ops) so the op
+    // count and the entire hashed prefix are fixed; only the per-op q_target
+    // bytes of this 96-op tail change between nonces. This reseeds the SHAKE256
+    // -derived 9024 Fiat-Shamir test inputs WITHOUT changing the circuit action,
+    // Toffoli count, or peak qubits -- and lets a dedicated search binary hash
+    // the fixed prefix once and only re-absorb this tail per candidate nonce.
+    // Gated on DIALOG_TAIL_NONCE being set so the committed baseline stream is
+    // byte-identical when it is absent.
+    if let Some(nonce) = std::env::var("DIALOG_TAIL_NONCE")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+    {
+        const NONCE_BITS: u32 = 48;
+        b.set_phase("dialog_tail_nonce");
+        for i in 0..NONCE_BITS {
+            let q = if (nonce >> i) & 1 == 1 { tx[1] } else { tx[0] };
+            b.x(q);
+            b.x(q);
+        }
+    }
+
     builder
 }
 
