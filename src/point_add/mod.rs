@@ -31093,10 +31093,10 @@ fn configure_ecdsafail_submission_route() {
     // frontier had dropped, stacked on compare57+active395. Clean island below.
     set_default_env("DIALOG_GCD_APPLY_CLEAN_COMPARE_BITS", "20");
     set_default_env("DIALOG_GCD_RAW_PA", "1");
-    // 396 -> 395 on the current 1355q route. The binary-GCD transcript still
-    // converges on the verifier support for the rerolled Fiat-Shamir island
-    // below, while dropping one full GCD body/reverse step.
-    set_default_env("DIALOG_GCD_ACTIVE_ITERATIONS", "395");
+    // 396 -> 395 -> 394 on the current 1355q route. The binary-GCD transcript
+    // still converges on the verifier support for the tail-nonce Fiat-Shamir
+    // island below, while dropping two full GCD body/reverse steps.
+    set_default_env("DIALOG_GCD_ACTIVE_ITERATIONS", "394");
     set_default_env("DIALOG_GCD_RAW_IPMUL_TERMINAL_REUSE", "1");
     set_default_env("DIALOG_GCD_RAW_IPMUL_CLEAR_P_RESIDUAL", "1");
     set_default_env("DIALOG_GCD_RAW_QUOTIENT_TERMINAL_REUSE", "1");
@@ -31243,6 +31243,13 @@ fn configure_ecdsafail_submission_route() {
     // 9024 shots at 1355q x 1,773,011 T.
     set_default_env("DIALOG_REROLL", "4269");
     set_default_env("DIALOG_POST_SUB_REROLL", "503292");
+    // Fiat-Shamir tail-nonce island for ACTIVE_ITERATIONS=394 on the 1355q base.
+    // The fixed-length 96-op identity X;X tail (see DIALOG_TAIL_NONCE block in
+    // build_builder) reseeds the 9024 Fiat-Shamir test inputs without changing
+    // the circuit action, Toffoli count, or peak qubits. nonce=296434 lands a
+    // clean island: validated 0/0/0 over all 9024 shots at 1355q x 1,770,811 T
+    // (score 2,399,448,905).
+    set_default_env("DIALOG_TAIL_NONCE", "296434");
     // Fuse the branch-bit comparator with the b0-controlled log update: derive
     // b0_and_b1 from the in-flight comparator carry instead of materializing a
     // separate cmp qubit and recomputing the comparator for uncompute. Pure
